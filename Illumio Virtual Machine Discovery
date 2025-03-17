@@ -1,0 +1,25 @@
+---
+- name: Discover Virtual Machines and Link to Illumio Policies
+  hosts: localhost
+  tasks:
+    - name: Discover VMs via cloud API
+      uri:
+        url: "https://cloud_provider_api/vms"
+        method: GET
+        headers:
+          Authorization: "Bearer your_cloud_api_token"
+        return_content: yes
+      register: vm_list
+
+    - name: Create Illumio grouping for discovered VMs
+      uri:
+        url: "https://your_illumio_server/api/v1/groups"
+        method: POST
+        headers:
+          Authorization: "Bearer your_api_token"
+        body:
+          name: "{{ item.name }}_group"
+          type: "vm"
+          criteria: "id:{{ item.id }}"
+        body_format: json
+      loop: "{{ vm_list.json }}"
