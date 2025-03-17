@@ -1,0 +1,24 @@
+---
+- name: Provision GCP infrastructure
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Create a GCP VM instance
+      google.cloud.gcp_compute_instance:
+        name: "gcp-migrated-instance"
+        machine_type: "n1-standard-2"
+        zone: "us-central1-a"
+        project: "your-gcp-project"
+        auth_kind: "serviceaccount"
+        state: "present"
+        disks:
+          - auto_delete: true
+            boot: true
+            initialize_params:
+              source_image: "projects/debian-cloud/global/images/family/debian-10"
+              disk_size_gb: 50
+        network_interfaces:
+          - network: "default"
+            access_configs:
+              - name: "External NAT"
+                type: "ONE_TO_ONE_NAT"
