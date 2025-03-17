@@ -1,0 +1,21 @@
+---
+- name: Create Illumio Segmentation Groups
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Create segmentation group for app servers
+      uri:
+        url: "https://your_illumio_server/api/v1/groups"
+        method: POST
+        headers:
+          Authorization: "Bearer your_api_token"
+        body:
+          name: "App_Servers"
+          type: "server"
+          criteria: "tag:app=server"
+        body_format: json
+      register: group_creation
+
+    - name: Display group creation result
+      debug:
+        var: group_creation
