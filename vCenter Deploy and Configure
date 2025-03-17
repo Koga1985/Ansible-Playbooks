@@ -1,0 +1,79 @@
+# Built by: Smith, Dewain #TheBeardedEngineer
+# Playbook: VMware vCenter Basic Deployment and Configuration
+
+---
+- name: Deploy and Configure VMware vCenter
+  hosts: vcenter_server
+  gather_facts: no
+  vars:
+    vcenter_appliance_iso: "/path/to/vcenter-appliance.iso"  # Path to vCenter ISO
+    vcenter_deployment_file: "/path/to/vcsa.json"           # Path to JSON deployment template
+    vcenter_username: "administrator@vsphere.local"        # vCenter administrator username
+    vcenter_password: "YourPassword"                      # vCenter administrator password
+    esxi_host: "esxi_host_address"                        # ESXi host to add
+    esxi_root_password: "EsxiRootPassword"                # Root password for ESXi host
+    datacenter_name: "Datacenter"                         # Name of the datacenter to create
+    cluster_name: "Cluster"                               # Name of the cluster to create
+
+  tasks:
+
+    - name: Mount the vCenter appliance ISO
+      ansible.builtin.command:
+        cmd: "mount -o loop {{ vcenter_appliance_iso }} /mnt/vcsa"
+      become: yes
+      when: vcenter_appliance_iso is defined
+
+    - name: Deploy the vCenter Server Appliance
+      ansible.builtin.command:
+        cmd: "/mnt/vcsa/vcsa-cli-installer/vcsa-deploy install --accept-eula --acknowledge-ceip {{ vcenter_deployment_file }}"
+      become: yes
+      when: vcenter_deployment_file is defined
+
+    - name: Wait for vCenter to become reachable
+      ansible.builtin.wait_for:
+        host: "{{ inventory_hostname }}"
+        port: 443
+        state: started
+        timeout: 600
+
+    - name: Login to vCenter
+      community.vmware.vmware_rest:
+        hostname: "{{ inventory_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: no
+
+    - name: Create a datacenter
+      community.vmware.vmware_datacenter:
+        hostname: "{{ inventory_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        datacenter_name: "{{ datacenter_name }}"
+        state: present
+
+    - name: Create a cluster
+      community.vmware.vmware_cluster:
+        hostname: "{{ inventory_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        datacenter_name: "{{ datacenter_name }}"
+        cluster_name: "{{ cluster_name }}"
+        state: present
+
+    - name: Add ESXi host to cluster
+      community.vmware.vmware_host:
+        hostname: "{{ inventory_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        esxi_hostname: "{{ esxi_host }}"
+        esxi_username: "root"
+        esxi_password: "{{ esxi_root_password }}"
+        cluster_name: "{{ cluster_name }}"
+        datacenter_name: "{{ datacenter_name }}"
+        state: present
+
+    - name: Unmount the vCenter appliance ISO
+      ansible.builtin.command:
+        cmd: "umount /mnt/vcsa"
+      become: yes
+      when: vcenter_appliance_iso is defined
