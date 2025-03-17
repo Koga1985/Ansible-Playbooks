@@ -1,0 +1,68 @@
+# Built by: Smith, Dewain #TheBeardedEngineer
+# Playbook: Basic Palo Alto Firewall Configuration
+# Purpose: Configure basic settings and policies on Palo Alto firewalls
+
+---
+- name: Configure Palo Alto Firewall
+  hosts: palo_alto_firewalls
+  gather_facts: no
+  vars:
+    ansible_connection: httpapi
+    ansible_network_os: panos
+    ansible_httpapi_use_ssl: yes
+    ansible_httpapi_validate_certs: no
+    palo_username: "admin"           # Update with your Palo Alto username
+    palo_password: "{{ vault_palo_password }}"  # Secure password using Ansible Vault
+    trust_zone: "trust"              # Update with the source zone name
+    untrust_zone: "untrust"          # Update with the destination zone name
+    default_nexthop: "192.168.1.1"   # Update with the next-hop IP for the default route
+
+  tasks:
+
+    - name: Verify login credentials
+      panos_check:
+        ip_address: "{{ inventory_hostname }}"
+        username: "{{ palo_username }}"
+        password: "{{ palo_password }}"
+      register: login_status
+      failed_when: login_status.status != "success"
+
+    - name: Configure security policy - Allow HTTP
+      panos_security_rule:
+        ip_address: "{{ inventory_hostname }}"
+        username: "{{ palo_username }}"
+        password: "{{ palo_password }}"
+        rule_name: "Allow-HTTP"
+        source_zone: "{{ trust_zone }}"
+        destination_zone: "{{ untrust_zone }}"
+        source: ["any"]
+        destination: ["any"]
+        application: ["web-browsing"]
+        action: "allow"
+      register: security_rule_status
+
+    - name: Configure static route - Default
+      panos_static_route:
+        ip_address: "{{ inventory_hostname }}"
+        username: "{{ palo_username }}"
+        password: "{{ palo_password }}"
+        route_name: "default"
+        destination: "0.0.0.0/0"
+        nexthop_type: "ip-address"
+        nexthop: "{{ default_nexthop }}"
+      register: static_route_status
+
+    - name: Commit changes to the firewall
+      panos_commit:
+        ip_address: "{{ inventory_hostname }}"
+        username: "{{ palo_username }}"
+        password: "{{ palo_password }}"
+      register: commit_status
+
+    - name: Display task results
+      debug:
+        msg:
+          - "Login Status: {{ login_status.status }}"
+          - "Security Rule Creation: {{ security_rule_status.status }}"
+          - "Static Route Configuration: {{ static_route_status.status }}"
+          - "Commit Status: {{ commit_status.status }}"
