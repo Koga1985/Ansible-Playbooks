@@ -1,0 +1,62 @@
+# Built by: Smith, Dewain #TheBeardedEngineer
+# Playbook: Veeam Basic Deploy and Config
+# Purpose: Deploy and configure Veeam Backup & Replication on a Windows server
+
+---
+- name: Deploy Veeam Backup & Replication
+  hosts: veeam_server
+  become: yes
+  gather_facts: yes
+  vars:
+    veeam_installer_source: "/mnt/share/VeeamBackupSetup.exe"  # Update with the source location
+    veeam_installer_dest: "C:\\Temp\\VeeamBackupSetup.exe"
+    veeam_install_directory: "C:\\Program Files\\Veeam\\Backup and Replication"
+    veeam_service_account: "DOMAIN\\veeamadmin"
+    veeam_service_password: "{{ vault_veeam_service_password }}"  # Secure with Ansible Vault
+    veeam_services:
+      - VeeamBackupSvc
+      - VeeamCloudSvc
+      - VeeamDeploySvc
+      - VeeamBrokerSvc
+      - VeeamTransportSvc
+
+  tasks:
+
+    - name: Ensure Temp directory exists
+      win_file:
+        path: "C:\\Temp"
+        state: directory
+
+    - name: Copy Veeam installer to the target machine
+      win_copy:
+        src: "{{ veeam_installer_source }}"
+        dest: "{{ veeam_installer_dest }}"
+
+    - name: Install Veeam Backup & Replication
+      win_package:
+        path: "{{ veeam_installer_dest }}"
+        arguments: "/silent /log C:\\Temp\\VeeamInstall.log /dir {{ veeam_install_directory }}"
+        state: present
+
+    - name: Configure Veeam services to use the service account
+      win_service:
+        name: "{{ item }}"
+        start_mode: auto
+        username: "{{ veeam_service_account }}"
+        password: "{{ veeam_service_password }}"
+      loop: "{{ veeam_services }}"
+
+    - name: Ensure Veeam services are started
+      win_service:
+        name: "{{ item }}"
+        state: started
+      loop: "{{ veeam_services }}"
+
+    - name: Clean up Veeam installer
+      win_file:
+        path: "{{ veeam_installer_dest }}"
+        state: absent
+
+    - name: Display completion message
+      debug:
+        msg: "Veeam Backup & Replication has been successfully installed and configured."
