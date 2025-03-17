@@ -1,0 +1,15 @@
+---
+- name: Create or Manage VMware Datastore
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Create a VMware Datastore
+      vmware_datastore:
+        hostname: "your_vcenter_server"
+        username: "your_vcenter_user"
+        password: "your_vcenter_password"
+        validate_certs: no
+        name: "your_datastore_name"
+        datacenter: "your_datacenter_name"
+        type: "VMFS"
+        state: "present"
