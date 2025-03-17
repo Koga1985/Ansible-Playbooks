@@ -1,0 +1,10 @@
+---
+- name: Migrate data from AWS EC2 to GCP
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Sync files from AWS to GCP using rsync
+      command: rsync -avz -e "ssh -i /path/to/aws-key.pem" ubuntu@aws-ec2-ip:/var/www/ /var/www/
+    
+    - name: Upload files to Google Cloud Storage
+      command: gsutil rsync -r /var/www/ gs://your-gcp-bucket
