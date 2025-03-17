@@ -1,0 +1,25 @@
+---
+- name: Create and Manage Backup Jobs in Cohesity
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Create a new backup job using the Cohesity API
+      uri:
+        url: "https://cohesity_server/api/v1/protectionJobs"
+        method: POST
+        headers:
+          Authorization: "Bearer your_api_token"
+        body:
+          name: "Backup Job 1"
+          type: "NAS"
+          protectionSource: "source_server_id"
+          schedule:
+            type: "Hourly"
+            startTime: "00:00"
+        body_format: json
+        return_content: yes
+      register: backup_job_result
+
+    - name: Display backup job creation result
+      debug:
+        var: backup_job_result
