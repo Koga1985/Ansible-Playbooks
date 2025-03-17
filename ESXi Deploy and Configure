@@ -1,0 +1,80 @@
+# Built by: Smith, Dewain #TheBeardedEngineer
+# Playbook: VMware ESXi Basic Deployment and Configuration
+
+---
+- name: Deploy and Configure VMware ESXi
+  hosts: esxi_hosts
+  gather_facts: no
+  vars:
+    esxi_root_password: "YourRootPassword"
+    esxi_new_password: "YourNewPassword"
+    datastore_name: "Datastore1"
+    vm_network_name: "VM Network"
+    ntp_servers:
+      - "time.google.com"
+      - "time1.google.com"
+    virtual_switch_name: "vSwitch1"
+    datastore_disk_name: "naa.600508b1001c5c25e32d4c7b2b5bf23c" # Update with the correct disk identifier
+
+  tasks:
+
+    - name: Change ESXi root password
+      vmware_host_password:
+        hostname: "{{ inventory_hostname }}"
+        username: "root"
+        password: "{{ esxi_root_password }}"
+        new_password: "{{ esxi_new_password }}"
+      delegate_to: localhost
+
+    - name: Configure NTP settings
+      vmware_host_ntp:
+        hostname: "{{ inventory_hostname }}"
+        username: "root"
+        password: "{{ esxi_new_password }}"
+        ntp_servers: "{{ ntp_servers }}"
+        state: present
+      delegate_to: localhost
+
+    - name: Create a new standard virtual switch
+      vmware_vswitch_standard:
+        hostname: "{{ inventory_hostname }}"
+        username: "root"
+        password: "{{ esxi_new_password }}"
+        switch_name: "{{ virtual_switch_name }}"
+        state: present
+      delegate_to: localhost
+
+    - name: Add a port group to the virtual switch
+      vmware_portgroup:
+        hostname: "{{ inventory_hostname }}"
+        username: "root"
+        password: "{{ esxi_new_password }}"
+        switch_name: "{{ virtual_switch_name }}"
+        portgroup_name: "{{ vm_network_name }}"
+        vlan_id: 0
+        state: present
+      delegate_to: localhost
+
+    - name: Create a datastore on local storage
+      vmware_datastore:
+        hostname: "{{ inventory_hostname }}"
+        username: "root"
+        password: "{{ esxi_new_password }}"
+        datastore_name: "{{ datastore_name }}"
+        disk_name: "{{ datastore_disk_name }}"
+        state: present
+      delegate_to: localhost
+
+    - name: Enable SSH service
+      vmware_host_service_manager:
+        hostname: "{{ inventory_hostname }}"
+        username: "root"
+        password: "{{ esxi_new_password }}"
+        service_name: "TSM-SSH"
+        state: present
+        enabled: true
+      delegate_to: localhost
+
+    - name: Display confirmation message
+      debug:
+        msg: "ESXi configuration for host {{ inventory_hostname }} completed successfully!"
