@@ -1,0 +1,13 @@
+---
+- name: Ensure system dependencies are installed
+  hosts: claroty_servers
+  become: yes
+  tasks:
+    - name: Install required packages
+      package:
+        name:
+          - python3
+          - docker.io
+          - curl
+          - net-tools
+        state: present
