@@ -1,0 +1,20 @@
+---
+- name: Validate GCP Migration Success
+  hosts: gcp_instances
+  become: yes
+  tasks:
+    - name: Check system uptime
+      command: uptime
+      register: uptime_output
+
+    - name: Print uptime
+      debug:
+        var: uptime_output.stdout
+
+    - name: Check database connectivity
+      command: mysql -u gcp_user -p'gcp_password' -h gcp-sql-instance -e "SHOW DATABASES;"
+      register: db_output
+
+    - name: Print database list
+      debug:
+        var: db_output.stdout
