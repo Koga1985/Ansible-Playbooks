@@ -1,0 +1,24 @@
+---
+- name: Manage VMware VM Snapshots
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Take snapshot of a VM
+      vmware_vm_vm_docker:
+        hostname: "your_vcenter_server"
+        username: "your_vcenter_user"
+        password: "your_vcenter_password"
+        validate_certs: no
+        vm_id: "your_vm_id"
+        snapshot_name: "snapshot_name"
+        state: "snapshot"
+
+    - name: Restore snapshot of a VM
+      vmware_vm_vm_docker:
+        hostname: "your_vcenter_server"
+        username: "your_vcenter_user"
+        password: "your_vcenter_password"
+        validate_certs: no
+        vm_id: "your_vm_id"
+        snapshot_name: "snapshot_name"
+        state: "reverted"
