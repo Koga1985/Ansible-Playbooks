@@ -1,0 +1,17 @@
+---
+- name: Monitor Cohesity Backup Job Status
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Check backup job status using Cohesity API
+      uri:
+        url: "https://cohesity_server/api/v1/protectionJobs/status"
+        method: GET
+        headers:
+          Authorization: "Bearer your_api_token"
+        return_content: yes
+      register: backup_status_result
+
+    - name: Display backup job status
+      debug:
+        var: backup_status_result
