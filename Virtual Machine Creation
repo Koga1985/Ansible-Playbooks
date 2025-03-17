@@ -1,0 +1,26 @@
+---
+- name: Create a new VMware Virtual Machine
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Create a new VM
+      vmware_vm_vm_docker:
+        hostname: "your_vcenter_server"
+        username: "your_vcenter_user"
+        password: "your_vcenter_password"
+        validate_certs: no
+        cluster: "your_cluster"
+        name: "new_vm_name"
+        template: "your_template_name"
+        datacenter: "your_datacenter"
+        resource_pool: "your_resource_pool"
+        state: "poweredon"
+        networks:
+          - name: "VM Network"
+            device_type: "vmxnet3"
+        disk:
+          - size_gb: 40
+            type: "thin"
+        hardware:
+          num_cpus: 2
+          memory_mb: 4096
