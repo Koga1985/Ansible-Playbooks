@@ -1,0 +1,32 @@
+---
+- name: Backup and Restore Operations in Cohesity
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Initiate a file-level backup
+      uri:
+        url: "https://cohesity_server/api/v1/protectionJobs/backup"
+        method: POST
+        headers:
+          Authorization: "Bearer your_api_token"
+        body:
+          protectionSourceId: "source_id"
+          jobType: "File"
+        body_format: json
+      register: backup_initiation_result
+
+    - name: Initiate a restore operation
+      uri:
+        url: "https://cohesity_server/api/v1/protectionJobs/restore"
+        method: POST
+        headers:
+          Authorization: "Bearer your_api_token"
+        body:
+          jobId: "job_id"
+          restoreTarget: "restore_path"
+        body_format: json
+      register: restore_initiation_result
+
+    - name: Display backup and restore status
+      debug:
+        var: backup_initiation_result
