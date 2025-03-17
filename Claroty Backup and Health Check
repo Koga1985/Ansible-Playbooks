@@ -1,0 +1,28 @@
+---
+- name: Automate backups and system health checks for Claroty
+  hosts: claroty_servers
+  become: yes
+  tasks:
+    - name: Create backup script
+      copy:
+        dest: "/usr/local/bin/claroty_backup.sh"
+        content: |
+          #!/bin/bash
+          tar -czf /var/backups/claroty_$(date +%F).tar.gz /opt/claroty
+        mode: "0755"
+
+    - name: Schedule backup via cron job
+      cron:
+        name: "Daily Claroty Backup"
+        job: "/usr/local/bin/claroty_backup.sh"
+        state: present
+        minute: "0"
+        hour: "2"
+
+    - name: Perform health check
+      command: "curl -k https://localhost:443/health"
+      register: health_status
+
+    - name: Display health check result
+      debug:
+        var: health_status.stdout
