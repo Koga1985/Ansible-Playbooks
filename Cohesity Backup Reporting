@@ -1,0 +1,18 @@
+---
+- name: Fetch Cohesity Backup Job Reports
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Retrieve backup job report from Cohesity
+      uri:
+        url: "https://cohesity_server/api/v1/protectionJobs/reports"
+        method: GET
+        headers:
+          Authorization: "Bearer your_api_token"
+        return_content: yes
+      register: backup_report_result
+
+    - name: Save backup report to file
+      copy:
+        content: "{{ backup_report_result.content }}"
+        dest: "/path/to/save/cohesity_backup_report_{{ ansible_date_time.iso8601 }}.json"
