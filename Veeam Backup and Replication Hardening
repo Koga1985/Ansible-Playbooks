@@ -1,0 +1,76 @@
+# Built by: Smith, Dewain #TheBeardedEngineer
+# Playbook: Veeam Basic Hardening
+# Purpose: Enhance security and enforce best practices on a Veeam server
+
+---
+- name: Veeam Server Hardening
+  hosts: veeam_server
+  gather_facts: yes
+  vars:
+    backup_repository_name: "YourBackupRepository"
+    backup_user_name: "YourBackupUser"
+    backup_job_name: "YourBackupJob"
+    veeam_logs_review_path: "C:\\VeeamLogsReview.txt"
+    retention_weeks: 4
+
+  tasks:
+
+    - name: Disable unnecessary services
+      win_service:
+        name: VeeamBackupSvc
+        state: stopped
+        start_mode: disabled
+
+    - name: Configure strong authentication for Veeam components
+      win_shell:
+        cmd: |
+          Import-Module Veeam.Backup.PowerShell
+          Set-VBRServer -SqlAuthenticationMode -Enable
+      args:
+        executable: powershell
+
+    - name: Limit permissions on Veeam backup repositories
+      win_shell:
+        cmd: |
+          Import-Module Veeam.Backup.PowerShell
+          $repo = Get-VBRBackupRepository -Name '{{ backup_repository_name }}'
+          Set-VBRBackupRepository -Repository $repo -Permissions (Get-VBRUser -Name '{{ backup_user_name }}') -RemovePermissions
+      args:
+        executable: powershell
+
+    - name: Enable Veeam encryption for backup data
+      win_shell:
+        cmd: |
+          Import-Module Veeam.Backup.PowerShell
+          Set-VBRGlobalOptions -EnableEncryption $true
+      args:
+        executable: powershell
+
+    - name: Set retention policies for backup data
+      win_shell:
+        cmd: |
+          Import-Module Veeam.Backup.PowerShell
+          $backupJob = Get-VBRJob -Name '{{ backup_job_name }}'
+          Set-VBRJobOptions -Job $backupJob -RetentionSyncWeekly -RetentionWeekly {{ retention_weeks }}
+      args:
+        executable: powershell
+
+    - name: Enable and configure Veeam alarms for critical events
+      win_shell:
+        cmd: |
+          Import-Module Veeam.Backup.PowerShell
+          Get-VBRNotification -Name 'YourNotification' | Enable-VBRNotification
+      args:
+        executable: powershell
+
+    - name: Regularly review Veeam logs for anomalies
+      win_shell:
+        cmd: |
+          Import-Module Veeam.Backup.PowerShell
+          Get-VBRLog -From (Get-Date).AddDays(-7) | Out-File -FilePath '{{ veeam_logs_review_path }}'
+      args:
+        executable: powershell
+
+    - name: Display confirmation message
+      debug:
+        msg: "Veeam Server Hardening configurations have been applied successfully."
