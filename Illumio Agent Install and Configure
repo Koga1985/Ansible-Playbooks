@@ -1,0 +1,31 @@
+---
+- name: Install and Configure Illumio Agent
+  hosts: all
+  become: yes
+  tasks:
+    - name: Install Illumio Agent
+      apt:
+        name: illumio-agent
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Install Illumio Agent on RedHat-based systems
+      yum:
+        name: illumio-agent
+        state: present
+      when: ansible_os_family == "RedHat"
+
+    - name: Configure Illumio agent communication settings
+      copy:
+        dest: /etc/illumio/illumio.conf
+        content: |
+          server: your_illumio_server
+          token: your_api_token
+      notify:
+        - Restart Illumio Agent
+
+  handlers:
+    - name: Restart Illumio Agent
+      service:
+        name: illumio-agent
+        state: restarted
