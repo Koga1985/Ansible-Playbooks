@@ -1,0 +1,20 @@
+---
+- name: Add New Cohesity Nodes to Cluster
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Add a new node to Cohesity cluster
+      uri:
+        url: "https://cohesity_server/api/v1/clusters/{{ cluster_id }}/nodes"
+        method: POST
+        headers:
+          Authorization: "Bearer your_api_token"
+        body:
+          ipAddress: "new_node_ip"
+          nodeType: "cohesity_node_type"
+        body_format: json
+      register: add_node_result
+
+    - name: Display node addition result
+      debug:
+        var: add_node_result
