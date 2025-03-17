@@ -1,0 +1,17 @@
+---
+- name: Fetch Illumio Reports
+  hosts: localhost
+  tasks:
+    - name: Retrieve configuration report from Illumio
+      uri:
+        url: "https://your_illumio_server/api/v1/reports/config"
+        method: GET
+        headers:
+          Authorization: "Bearer your_api_token"
+        return_content: yes
+      register: report_data
+
+    - name: Save report to file
+      copy:
+        content: "{{ report_data.content }}"
+        dest: "/path/to/save/illumio_report_{{ ansible_date_time.iso8601 }}.json"
