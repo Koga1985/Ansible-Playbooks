@@ -1,0 +1,16 @@
+---
+- name: Terminate AWS EC2 instance
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Stop EC2 instance
+      amazon.aws.ec2_instance:
+        instance_ids: "i-xxxxxxxxxxxxxxxxx"
+        state: "stopped"
+        region: "us-east-1"
+    
+    - name: Terminate EC2 instance
+      amazon.aws.ec2_instance:
+        instance_ids: "i-xxxxxxxxxxxxxxxxx"
+        state: "absent"
+        region: "us-east-1"
