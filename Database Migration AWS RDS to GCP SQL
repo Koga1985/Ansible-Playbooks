@@ -1,0 +1,13 @@
+---
+- name: Migrate MySQL database from AWS to GCP
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Dump AWS RDS MySQL database
+      command: mysqldump -u aws_user -p'aws_password' -h aws-rds-endpoint database_name > /tmp/db_backup.sql
+
+    - name: Transfer dump to GCP
+      command: gsutil cp /tmp/db_backup.sql gs://your-gcp-bucket
+
+    - name: Restore database on GCP Cloud SQL
+      command: gcloud sql import sql your-cloud-sql-instance gs://your-gcp-bucket/db_backup.sql --database=database_name --project=your-gcp-project
