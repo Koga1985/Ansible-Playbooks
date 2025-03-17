@@ -1,0 +1,25 @@
+---
+- name: Manage Illumio Policies
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Create or update Illumio policy using API
+      uri:
+        url: "https://your_illumio_server/api/v1/policies"
+        method: POST
+        headers:
+          Authorization: "Bearer your_api_token"
+        body:
+          name: "NewPolicy"
+          description: "Micro-segmentation policy"
+          rules:
+            - source: "app1"
+              destination: "app2"
+              ports: "80,443"
+        body_format: json
+        return_content: yes
+      register: policy_creation_result
+
+    - name: Display policy creation result
+      debug:
+        var: policy_creation_result
