@@ -1,0 +1,15 @@
+---
+- name: Configure VMware VM Network Adapter
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Configure network adapter for VM
+      vmware_vm_vm_docker:
+        hostname: "your_vcenter_server"
+        username: "your_vcenter_user"
+        password: "your_vcenter_password"
+        validate_certs: no
+        vm_id: "your_vm_id"
+        networks:
+          - name: "VM Network"
+            device_type: "vmxnet3"
