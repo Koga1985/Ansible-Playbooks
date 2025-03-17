@@ -1,0 +1,21 @@
+---
+- name: Manage Protection Sources in Cohesity
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Add a new VM protection source to Cohesity
+      uri:
+        url: "https://cohesity_server/api/v1/protectionSources"
+        method: POST
+        headers:
+          Authorization: "Bearer your_api_token"
+        body:
+          name: "VM-01"
+          type: "VMware"
+          ip: "192.168.1.100"
+        body_format: json
+      register: protection_source_result
+
+    - name: Display protection source result
+      debug:
+        var: protection_source_result
