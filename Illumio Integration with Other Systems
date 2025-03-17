@@ -1,0 +1,14 @@
+---
+- name: Integrate Illumio with SIEM (e.g., Splunk)
+  hosts: localhost
+  tasks:
+    - name: Send Illumio events to Splunk
+      uri:
+        url: "https://splunk_server:8088/services/collector/event"
+        method: POST
+        headers:
+          Authorization: "Splunk your_splunk_token"
+        body:
+          event: "{{ illumio_event_data }}"
+        body_format: json
+      delegate_to: localhost
