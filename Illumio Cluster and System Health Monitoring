@@ -1,0 +1,16 @@
+---
+- name: Monitor Illumio Cluster Health
+  hosts: localhost
+  tasks:
+    - name: Check Illumio cluster health
+      uri:
+        url: "https://your_illumio_server/api/v1/cluster/health"
+        method: GET
+        headers:
+          Authorization: "Bearer your_api_token"
+        return_content: yes
+      register: health_check_result
+
+    - name: Display cluster health status
+      debug:
+        var: health_check_result
