@@ -1,0 +1,31 @@
+---
+- name: Install and Configure Cohesity Nodes
+  hosts: all
+  become: yes
+  tasks:
+    - name: Install Cohesity Agent
+      yum:
+        name: cohesity-agent
+        state: present
+      when: ansible_os_family == "RedHat"
+
+    - name: Install Cohesity Agent on Debian-based systems
+      apt:
+        name: cohesity-agent
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Configure Cohesity agent settings
+      copy:
+        dest: /etc/cohesity/agent.conf
+        content: |
+          server: "cohesity_server"
+          token: "your_api_token"
+      notify:
+        - Restart Cohesity Agent
+
+  handlers:
+    - name: Restart Cohesity Agent
+      service:
+        name: cohesity-agent
+        state: restarted
