@@ -1,0 +1,23 @@
+---
+- name: Create or Manage VMware Datacenter and Cluster
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Create a VMware Datacenter
+      vmware_datacenter:
+        hostname: "your_vcenter_server"
+        username: "your_vcenter_user"
+        password: "your_vcenter_password"
+        validate_certs: no
+        name: "your_datacenter_name"
+        state: "present"
+
+    - name: Create a VMware Cluster
+      vmware_compute_cluster:
+        hostname: "your_vcenter_server"
+        username: "your_vcenter_user"
+        password: "your_vcenter_password"
+        validate_certs: no
+        cluster_name: "your_cluster_name"
+        datacenter_name: "your_datacenter_name"
+        state: "present"
