@@ -1,0 +1,73 @@
+---
+- name: Deploy and Configure Illumio
+  hosts: illumio_nodes
+  become: yes
+  vars:
+    illumio_pce_version: "23.2.0"
+    illumio_ven_package: "illumio-ven.x86_64.rpm"
+    illumio_pce_download_url: "https://example.com/illumio-pce.tar.gz"
+    illumio_ven_activation_url: "https://pce.example.com:8443"
+    illumio_api_user: "{{ lookup('env', 'ILLUMIO_API_USER') }}"
+    illumio_api_password: "{{ lookup('env', 'ILLUMIO_API_PASSWORD') }}"
+  tasks:
+    - name: Ensure required packages are installed
+      yum:
+        name:
+          - curl
+          - tar
+          - unzip
+          - python3
+        state: present
+      tags: dependencies
+
+    - name: Download Illumio PCE Package
+      get_url:
+        url: "{{ illumio_pce_download_url }}"
+        dest: "/tmp/illumio-pce.tar.gz"
+        mode: '0644'
+      when: inventory_hostname in groups['pce_servers']
+      tags: download
+
+    - name: Extract Illumio PCE Package
+      unarchive:
+        src: "/tmp/illumio-pce.tar.gz"
+        dest: "/opt/illumio/"
+        remote_src: yes
+      when: inventory_hostname in groups['pce_servers']
+      tags: install
+
+    - name: Install Illumio VEN
+      yum:
+        name: "/tmp/{{ illumio_ven_package }}"
+        state: present
+      when: inventory_hostname in groups['ven_nodes']
+      tags: ven_install
+
+    - name: Activate Illumio VEN with Retry Logic and Error Handling
+      block:
+        - name: Attempt to Activate Illumio VEN
+          command: >
+            illumio-ven-ctl activate --management-server {{ illumio_ven_activation_url }}
+          register: activation_result
+          retries: 3
+          delay: 10
+          until: activation_result.rc == 0
+      rescue:
+        - name: Log VEN Activation Failure
+          debug:
+            msg: "Illumio VEN activation failed after 3 attempts. Check logs for details."
+      when: inventory_hostname in groups['ven_nodes']
+      tags: ven_activate
+
+    - name: Verify Illumio VEN Status
+      command: illumio-ven-ctl status
+      register: ven_status
+      changed_when: false
+      when: inventory_hostname in groups['ven_nodes']
+      tags: verify
+
+    - name: Output VEN Status
+      debug:
+        msg: "{{ ven_status.stdout }}"
+      when: inventory_hostname in groups['ven_nodes']
+      tags: debug
