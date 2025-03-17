@@ -1,0 +1,46 @@
+# Built by: Smith, Dewain #TheBeardedEngineer
+# Playbook: Cisco Basic Configuration for IOS Devices
+
+---
+- name: Configure Cisco IOS device
+  hosts: cisco_routers
+  gather_facts: no
+  vars:
+    ansible_connection: network_cli
+    ansible_network_os: ios
+    ansible_become: yes
+    ansible_become_method: enable
+  tasks:
+
+    - name: Set hostname
+      ios_config:
+        lines:
+          - hostname MyCiscoRouter
+
+    - name: Configure interface GigabitEthernet0/1
+      ios_config:
+        lines:
+          - description Configured by Ansible
+          - ip address 192.168.1.1 255.255.255.0
+          - no shutdown
+        parents:
+          - interface GigabitEthernet0/1
+
+    - name: Add static route
+      ios_config:
+        lines:
+          - ip route 10.1.1.0 255.255.255.0 192.168.1.2
+
+    - name: Save running configuration to startup configuration
+      ios_config:
+        save_when: always
+
+    - name: Verify configuration (show running-config)
+      ios_command:
+        commands:
+          - show running-config
+      register: running_config_output
+
+    - name: Display running configuration
+      debug:
+        var: running_config_output.stdout_lines
