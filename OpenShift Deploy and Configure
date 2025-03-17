@@ -1,0 +1,64 @@
+---
+- name: OpenShift Basic Deploy and Config
+  hosts: localhost
+  become: yes
+  vars:
+    ocp_version: "4.9.0"
+    install_dir: "/opt/openshift"
+    project_name: "myproject"
+    sample_app: "openshift/deployment-example"
+    oc_client_url: "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/{{ ocp_version }}/openshift-client-linux-{{ ocp_version }}.tar.gz"
+  tasks:
+
+    - name: Ensure OpenShift CLI (oc) is installed
+      command: which oc
+      register: oc_check
+      failed_when: oc_check.rc != 0
+      ignore_errors: no
+
+    - name: Ensure installation directory exists
+      file:
+        path: "{{ install_dir }}"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0755'
+
+    - name: Download OpenShift client if not already present
+      get_url:
+        url: "{{ oc_client_url }}"
+        dest: "/tmp/oc.tar.gz"
+      when: not oc_check.changed
+
+    - name: Extract OpenShift client
+      unarchive:
+        src: "/tmp/oc.tar.gz"
+        dest: "{{ install_dir }}"
+        remote_src: yes
+      when: not oc_check.changed
+
+    - name: Ensure OpenShift client directory is in PATH
+      lineinfile:
+        path: "/etc/profile"
+        line: "export PATH=\$PATH:{{ install_dir }}"
+        state: present
+      notify: Reload environment
+
+    - name: Log in as cluster admin
+      shell: "oc login -u system:admin"
+      register: login_result
+      failed_when: login_result.rc != 0
+
+    - name: Ensure project exists
+      shell: "oc get project {{ project_name }} || oc new-project {{ project_name }}"
+      register: project_result
+      failed_when: project_result.rc != 0
+
+    - name: Deploy sample application
+      shell: "oc get dc -n {{ project_name }} || oc new-app {{ sample_app }} -n {{ project_name }}"
+      register: app_result
+      failed_when: app_result.rc != 0
+
+  handlers:
+    - name: Reload environment
+      shell: source /etc/profile
