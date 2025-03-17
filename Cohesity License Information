@@ -1,0 +1,17 @@
+---
+- name: Fetch Cohesity License Information
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Get Cohesity license information
+      uri:
+        url: "https://cohesity_server/api/v1/licenses"
+        method: GET
+        headers:
+          Authorization: "Bearer your_api_token"
+        return_content: yes
+      register: license_info_result
+
+    - name: Display license information
+      debug:
+        var: license_info_result
