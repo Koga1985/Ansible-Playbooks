@@ -1,0 +1,16 @@
+---
+- name: Configure network settings for Claroty
+  hosts: claroty_servers
+  become: yes
+  tasks:
+    - name: Enable IP forwarding
+      sysctl:
+        name: net.ipv4.ip_forward
+        value: "1"
+        state: present
+
+    - name: Allow Claroty communication ports
+      firewalld:
+        port: 443/tcp
+        permanent: yes
+        state: enabled
