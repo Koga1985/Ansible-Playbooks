@@ -7,3 +7,6 @@ Illumio
 Palo Alto
 Cisco UCS
 VMware
+Veeam
+OpenShift
+Juniper
