@@ -1,0 +1,34 @@
+---
+- name: Power On/Off/Restart VMware Virtual Machine
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Power on VM
+      vmware_vm_vm_docker:
+        hostname: "your_vcenter_server"
+        username: "your_vcenter_user"
+        password: "your_vcenter_password"
+        validate_certs: no
+        vm_id: "vm_name_or_uuid"
+        state: "poweredon"
+      when: action == "poweron"
+
+    - name: Power off VM
+      vmware_vm_vm_docker:
+        hostname: "your_vcenter_server"
+        username: "your_vcenter_user"
+        password: "your_vcenter_password"
+        validate_certs: no
+        vm_id: "vm_name_or_uuid"
+        state: "poweredoff"
+      when: action == "poweroff"
+
+    - name: Restart VM
+      vmware_vm_vm_docker:
+        hostname: "your_vcenter_server"
+        username: "your_vcenter_user"
+        password: "your_vcenter_password"
+        validate_certs: no
+        vm_id: "vm_name_or_uuid"
+        state: "restarted"
+      when: action == "restart"
