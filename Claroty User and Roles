@@ -1,0 +1,17 @@
+---
+- name: Manage Claroty users and roles
+  hosts: localhost
+  tasks:
+    - name: Create a new user
+      uri:
+        url: "https://claroty.example.com/api/v1/users"
+        method: POST
+        body:
+          username: "newuser"
+          password: "securepassword"
+          role: "admin"
+        body_format: json
+        headers:
+          Content-Type: "application/json"
+          Authorization: "Bearer your_api_token"
+        validate_certs: no
