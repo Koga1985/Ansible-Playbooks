@@ -1,0 +1,15 @@
+---
+- name: Configure GCP firewall rules
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Allow SSH and HTTP
+      google.cloud.gcp_compute_firewall:
+        name: "allow-ssh-http"
+        network: "default"
+        allowed:
+          - ip_protocol: "tcp"
+            ports: ["22", "80"]
+        source_ranges: ["0.0.0.0/0"]
+        project: "your-gcp-project"
+        auth_kind: "serviceaccount"
