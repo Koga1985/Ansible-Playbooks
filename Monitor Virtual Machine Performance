@@ -1,0 +1,18 @@
+---
+- name: Monitor VMware VM Performance Metrics
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Get VM performance metrics
+      vmware_vm_vm_docker:
+        hostname: "your_vcenter_server"
+        username: "your_vcenter_user"
+        password: "your_vcenter_password"
+        validate_certs: no
+        vm_id: "your_vm_id"
+        state: "performance"
+      register: performance_metrics
+
+    - name: Display performance metrics
+      debug:
+        var: performance_metrics
