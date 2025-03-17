@@ -1,0 +1,67 @@
+# Built by: Smith, Dewain #TheBeardedEngineer
+# Playbook: Veeam ONE Basic Deployment and Configuration
+# Purpose: Deploy and configure Veeam ONE
+
+---
+- name: Deploy and Configure Veeam ONE
+  hosts: veeam_one_server
+  gather_facts: yes
+  vars:
+    veeam_one_installer_path: "C:\\Installers\\VeeamOneSetup.exe"
+    veeam_one_temp_path: "C:\\Temp\\VeeamOneSetup.exe"
+    veeam_one_install_directory: "C:\\Program Files\\Veeam\\ONE"
+    veeam_one_service_account: "DOMAIN\\veeamadmin"
+    veeam_one_service_password: "SuperSecretPassword"
+    veeam_sql_instance: "SERVERNAME\\INSTANCE"
+    veeam_sql_db_name: "VeeamOne"
+
+  tasks:
+
+    - name: Ensure temporary directory exists
+      win_file:
+        path: "C:\\Temp"
+        state: directory
+
+    - name: Ensure installer is present
+      win_copy:
+        src: "{{ veeam_one_installer_path }}"
+        dest: "{{ veeam_one_temp_path }}"
+        remote_src: no
+
+    - name: Install Veeam ONE
+      win_package:
+        path: "{{ veeam_one_temp_path }}"
+        arguments: >
+          /silent 
+          /log C:\\Temp\\VeeamOneInstall.log
+          /dir {{ veeam_one_install_directory }}
+          /sqlinstance {{ veeam_sql_instance }}
+          /dbname {{ veeam_sql_db_name }}
+        state: present
+
+    - name: Configure Veeam ONE services
+      win_service:
+        name: "{{ item }}"
+        start_mode: auto
+        username: "{{ veeam_one_service_account }}"
+        password: "{{ veeam_one_service_password }}"
+      loop:
+        - VeeamDCS
+        - VeeamRSS
+
+    - name: Ensure Veeam ONE services are started
+      win_service:
+        name: "{{ item }}"
+        state: started
+      loop:
+        - VeeamDCS
+        - VeeamRSS
+
+    - name: Clean up installation files
+      win_file:
+        path: "{{ veeam_one_temp_path }}"
+        state: absent
+
+    - name: Display confirmation message
+      debug:
+        msg: "Veeam ONE installation and configuration completed successfully!"
