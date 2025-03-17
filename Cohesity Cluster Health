@@ -1,0 +1,17 @@
+---
+- name: Check Cohesity Cluster Health
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Get Cohesity cluster health status
+      uri:
+        url: "https://cohesity_server/api/v1/clusters/health"
+        method: GET
+        headers:
+          Authorization: "Bearer your_api_token"
+        return_content: yes
+      register: cluster_health_result
+
+    - name: Display cluster health status
+      debug:
+        var: cluster_health_result
