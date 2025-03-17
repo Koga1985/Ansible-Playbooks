@@ -1,0 +1,21 @@
+---
+- name: Manage Cohesity Users and Roles
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Create a new user in Cohesity
+      uri:
+        url: "https://cohesity_server/api/v1/users"
+        method: POST
+        headers:
+          Authorization: "Bearer your_api_token"
+        body:
+          username: "new_user"
+          password: "user_password"
+          role: "Administrator"
+        body_format: json
+      register: user_creation_result
+
+    - name: Display user creation result
+      debug:
+        var: user_creation_result
