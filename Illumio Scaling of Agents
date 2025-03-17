@@ -1,0 +1,17 @@
+---
+- name: Scale Illumio Agents
+  hosts: all
+  become: yes
+  tasks:
+    - name: Deploy new Illumio agents based on scaling
+      shell: |
+        if [ "$(ansible_hostname)" == "new-instance" ]; then
+          apt-get install -y illumio-agent
+        fi
+      when: inventory_hostname in groups['new-instances']
+
+    - name: Restart Illumio agent on newly scaled instances
+      service:
+        name: illumio-agent
+        state: restarted
+      when: inventory_hostname in groups['new-instances']
