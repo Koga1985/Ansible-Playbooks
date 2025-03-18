@@ -1,0 +1,5 @@
+- name: Run an Ad-hoc Command
+  hosts: localhost
+  tasks:
+    - name: Ping all hosts
+      command: ansible all -m ping
