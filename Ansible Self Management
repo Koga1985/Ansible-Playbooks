@@ -1,0 +1,51 @@
+---
+- name: Ansible Self-Management Playbook
+  hosts: localhost
+  gather_facts: no
+  tasks:
+
+    - name: Install Ansible on Target Machines
+      become: yes
+      apt:
+        name: ansible
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Install Ansible on RHEL-based systems
+      become: yes
+      yum:
+        name: ansible
+        state: present
+      when: ansible_os_family == "RedHat"
+
+    - name: Generate a Dynamic Inventory File
+      copy:
+        dest: "/etc/ansible/hosts"
+        content: |
+          [web_servers]
+          web1.example.com
+          web2.example.com
+
+          [db_servers]
+          db1.example.com
+          db2.example.com
+
+    - name: Deploy and Execute Ansible Playbook
+      copy:
+        src: "/local/path/to/playbook.yml"
+        dest: "/remote/path/playbook.yml"
+
+    - name: Run playbook on remote system
+      command: ansible-playbook /remote/path/playbook.yml
+
+    - name: Run an Ad-hoc Command
+      command: ansible all -m ping
+
+    - name: Run Ansible Lint on Playbooks
+      command: ansible-lint /path/to/playbook.yml
+
+    - name: Enable Ansible Logging
+      lineinfile:
+        path: "/etc/ansible/ansible.cfg"
+        line: "log_path = /var/log/ansible.log"
+        state: present
