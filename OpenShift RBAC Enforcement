@@ -1,0 +1,21 @@
+- name: Assign Roles to Users in OpenShift
+  hosts: localhost
+  gather_facts: no
+  vars:
+    user: "developer"
+    role: "view"
+    project: "secure-project"
+  tasks:
+    - name: Assign role to user
+      command: oc adm policy add-role-to-user {{ role }} {{ user }} -n {{ project }}
+      register: role_result
+      failed_when: "'added' not in role_result.stdout and 'already exists' not in role_result.stdout"
+
+    - name: Verify role assignment
+      command: oc get rolebindings -n {{ project }} -o json
+      register: verify_role
+      failed_when: "'{{ user }}' not in verify_role.stdout"
+
+    - name: Confirm role binding
+      debug:
+        msg: "User '{{ user }}' successfully assigned role '{{ role }}' in project '{{ project }}'."
