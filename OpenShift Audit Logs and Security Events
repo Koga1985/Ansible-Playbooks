@@ -1,0 +1,11 @@
+- name: Audit OpenShift Security Logs
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Get logs from security namespace
+      command: oc logs -n openshift-authentication --since=1h
+      register: auth_logs
+
+    - name: Analyze authentication logs
+      debug:
+        msg: "{{ auth_logs.stdout }}"
