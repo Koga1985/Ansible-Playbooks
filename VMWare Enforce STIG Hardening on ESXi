@@ -1,0 +1,47 @@
+- name: Apply STIG Compliance to VMware ESXi
+  hosts: localhost
+  gather_facts: no
+  vars:
+    vcenter_hostname: "vcenter.example.com"
+    vcenter_username: "admin@example.com"
+    vcenter_password: "password"
+    esxi_host: "esxi-01.example.com"
+  tasks:
+    - name: Disable SSH on ESXi
+      community.vmware.vmware_host_service_manager:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: no
+        esxi_hostname: "{{ esxi_host }}"
+        service_name: "TSM-SSH"
+        state: "stopped"
+        restart_required: no
+      register: ssh_disable
+
+    - name: Ensure audit logging is enabled
+      community.vmware.vmware_host_config_manager:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: no
+        esxi_hostname: "{{ esxi_host }}"
+        options:
+          "Syslog.global.logDir": "[Datastore1] /vmware_logs/"
+          "Syslog.global.logDirUnique": "true"
+      register: log_config
+
+    - name: Enforce strong password policies
+      community.vmware.vmware_host_config_manager:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: no
+        esxi_hostname: "{{ esxi_host }}"
+        options:
+          "Security.PasswordQualityControl": "retry=3 min=disabled,disabled,disabled,7,7"
+      register: password_policy
+
+    - name: Confirm STIG settings applied
+      debug:
+        msg: "STIG settings applied to {{ esxi_host }}: SSH disabled, audit logs enabled, and strong passwords enforced."
