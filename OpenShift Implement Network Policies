@@ -1,0 +1,30 @@
+- name: Apply Network Policy to Restrict Traffic
+  hosts: localhost
+  gather_facts: no
+  vars:
+    project: "secure-project"
+  tasks:
+    - name: Create Network Policy YAML
+      copy:
+        dest: "/tmp/network-policy.yaml"
+        content: |
+          apiVersion: networking.k8s.io/v1
+          kind: NetworkPolicy
+          metadata:
+            name: restrict-all
+            namespace: {{ project }}
+          spec:
+            podSelector: {}
+            policyTypes:
+            - Ingress
+            - Egress
+            ingress: []
+            egress: []
+    - name: Apply Network Policy
+      command: oc apply -f /tmp/network-policy.yaml
+      register: policy_result
+      failed_when: "'created' not in policy_result.stdout and 'configured' not in policy_result.stdout"
+
+    - name: Confirm Network Policy
+      debug:
+        msg: "Network policy applied successfully to project '{{ project }}'."
