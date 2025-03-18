@@ -1,0 +1,16 @@
+- name: Create Service Profile
+  hosts: localhost
+  gather_facts: no
+  vars:
+    ucs_hostname: "ucs-manager.example.com"
+    ucs_username: "admin"
+    ucs_password: "password"
+  tasks:
+    - name: Create a new service profile
+      cisco.ucs.ucs_service_profile:
+        hostname: "{{ ucs_hostname }}"
+        username: "{{ ucs_username }}"
+        password: "{{ ucs_password }}"
+        name: "SP-01"
+        org_dn: "org-root"
+        state: present
