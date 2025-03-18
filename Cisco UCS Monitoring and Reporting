@@ -1,0 +1,18 @@
+- name: Monitor UCS System Health
+  hosts: localhost
+  gather_facts: no
+  vars:
+    ucs_hostname: "ucs-manager.example.com"
+    ucs_username: "admin"
+    ucs_password: "password"
+  tasks:
+    - name: Get UCS hardware health
+      cisco.ucs.ucs_hardware_inventory:
+        hostname: "{{ ucs_hostname }}"
+        username: "{{ ucs_username }}"
+        password: "{{ ucs_password }}"
+      register: ucs_health
+
+    - name: Display UCS Health Status
+      debug:
+        msg: "{{ ucs_health }}"
