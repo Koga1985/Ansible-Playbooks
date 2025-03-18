@@ -1,0 +1,15 @@
+- name: Install Ansible on Target Machines
+  hosts: target_servers
+  become: yes
+  tasks:
+    - name: Install Ansible on Debian-based systems
+      apt:
+        name: ansible
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Install Ansible on RHEL-based systems
+      yum:
+        name: ansible
+        state: present
+      when: ansible_os_family == "RedHat"
