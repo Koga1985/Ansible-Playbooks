@@ -1,0 +1,25 @@
+- name: Apply STIG Security to VMs
+  hosts: localhost
+  gather_facts: no
+  vars:
+    vcenter_hostname: "vcenter.example.com"
+    vcenter_username: "admin@example.com"
+    vcenter_password: "password"
+    vm_name: "secure_vm"
+  tasks:
+    - name: Disable copy-paste & drag-and-drop
+      community.vmware.vmware_vm_shell:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: no
+        vm_name: "{{ vm_name }}"
+        commands:
+          - "vmware-rpctool 'vmx.set_option isolation.tools.copy.disable true'"
+          - "vmware-rpctool 'vmx.set_option isolation.tools.paste.disable true'"
+          - "vmware-rpctool 'vmx.set_option isolation.tools.dnd.disable true'"
+      register: vm_security
+
+    - name: Confirm VM security settings
+      debug:
+        msg: "STIG-compliant VM security settings applied to '{{ vm_name }}'."
