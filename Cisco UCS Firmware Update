@@ -1,0 +1,17 @@
+- name: Upgrade UCS Firmware
+  hosts: localhost
+  gather_facts: no
+  vars:
+    ucs_hostname: "ucs-manager.example.com"
+    ucs_username: "admin"
+    ucs_password: "password"
+  tasks:
+    - name: Update Infrastructure Firmware
+      cisco.ucs.ucs_firmware_policy:
+        hostname: "{{ ucs_hostname }}"
+        username: "{{ ucs_username }}"
+        password: "{{ ucs_password }}"
+        name: "Firmware-Policy"
+        org_dn: "org-root"
+        firmware_bundle: "ucs-fw-bundle-4.2.2a.bin"
+        state: present
