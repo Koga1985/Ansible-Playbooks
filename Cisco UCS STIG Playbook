@@ -1,0 +1,68 @@
+---
+- name: UCS Security Hardening and Compliance
+  hosts: localhost
+  gather_facts: no
+  vars:
+    ucs_hostname: "ucs-manager.example.com"
+    ucs_username: "admin"
+    ucs_password: "password"
+
+  tasks:
+    - name: Configure NTP Servers
+      cisco.ucs.ucs_ntp:
+        hostname: "{{ ucs_hostname }}"
+        username: "{{ ucs_username }}"
+        password: "{{ ucs_password }}"
+        ntp_servers:
+          - "192.168.1.10"
+          - "192.168.1.11"
+        state: present
+
+    - name: Create a new service profile
+      cisco.ucs.ucs_service_profile:
+        hostname: "{{ ucs_hostname }}"
+        username: "{{ ucs_username }}"
+        password: "{{ ucs_password }}"
+        name: "SP-01"
+        org_dn: "org-root"
+        state: present
+
+    - name: Upgrade UCS Firmware
+      cisco.ucs.ucs_firmware_policy:
+        hostname: "{{ ucs_hostname }}"
+        username: "{{ ucs_username }}"
+        password: "{{ ucs_password }}"
+        name: "Firmware-Policy"
+        org_dn: "org-root"
+        firmware_bundle: "ucs-fw-bundle-4.2.2a.bin"
+        state: present
+
+    - name: Disable SSH and Telnet
+      cisco.ucs.ucs_security:
+        hostname: "{{ ucs_hostname }}"
+        username: "{{ ucs_username }}"
+        password: "{{ ucs_password }}"
+        ssh: disabled
+        telnet: disabled
+        state: present
+
+    - name: Enforce strong password policy
+      cisco.ucs.ucs_password_policy:
+        hostname: "{{ ucs_hostname }}"
+        username: "{{ ucs_username }}"
+        password: "{{ ucs_password }}"
+        min_length: 12
+        complexity: high
+        expiration_days: 90
+        state: present
+
+    - name: Get UCS hardware health
+      cisco.ucs.ucs_hardware_inventory:
+        hostname: "{{ ucs_hostname }}"
+        username: "{{ ucs_username }}"
+        password: "{{ ucs_password }}"
+      register: ucs_health
+
+    - name: Display UCS Health Status
+      debug:
+        msg: "{{ ucs_health }}"
