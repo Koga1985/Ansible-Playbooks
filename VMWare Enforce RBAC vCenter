@@ -1,0 +1,24 @@
+- name: Configure RBAC for vCenter Users
+  hosts: localhost
+  gather_facts: no
+  vars:
+    vcenter_hostname: "vcenter.example.com"
+    vcenter_username: "admin@example.com"
+    vcenter_password: "password"
+    user: "secure_user"
+    role: "ReadOnly"
+  tasks:
+    - name: Assign role to user
+      community.vmware.vmware_role_manager:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: no
+        role_name: "{{ role }}"
+        principal: "{{ user }}"
+        state: present
+      register: role_result
+
+    - name: Confirm role assignment
+      debug:
+        msg: "User '{{ user }}' assigned role '{{ role }}' successfully."
