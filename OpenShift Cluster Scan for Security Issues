@@ -1,0 +1,20 @@
+- name: Scan OpenShift Cluster for Security Issues
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Check cluster-wide security policies
+      command: oc get securitycontextconstraints
+      register: scc_result
+
+    - name: Show security context constraints
+      debug:
+        msg: "{{ scc_result.stdout }}"
+
+    - name: Check for privileged containers
+      command: oc get pods --all-namespaces -o jsonpath="{.items[*].spec.containers[*].securityContext.privileged}"
+      register: privileged_pods
+
+    - name: Alert on privileged containers
+      debug:
+        msg: "Warning! Privileged containers found: {{ privileged_pods.stdout }}"
+      when: privileged_pods.stdout | length > 0
