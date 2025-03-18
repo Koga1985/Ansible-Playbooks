@@ -1,0 +1,26 @@
+- name: Secure UCSM
+  hosts: localhost
+  gather_facts: no
+  vars:
+    ucs_hostname: "ucs-manager.example.com"
+    ucs_username: "admin"
+    ucs_password: "password"
+  tasks:
+    - name: Disable SSH access
+      cisco.ucs.ucs_security:
+        hostname: "{{ ucs_hostname }}"
+        username: "{{ ucs_username }}"
+        password: "{{ ucs_password }}"
+        ssh: disabled
+        telnet: disabled
+        state: present
+
+    - name: Enforce strong password policy
+      cisco.ucs.ucs_password_policy:
+        hostname: "{{ ucs_hostname }}"
+        username: "{{ ucs_username }}"
+        password: "{{ ucs_password }}"
+        min_length: 12
+        complexity: high
+        expiration_days: 90
+        state: present
