@@ -1,0 +1,22 @@
+- name: Encrypt VMware Virtual Machines
+  hosts: localhost
+  gather_facts: no
+  vars:
+    vcenter_hostname: "vcenter.example.com"
+    vcenter_username: "admin@example.com"
+    vcenter_password: "password"
+    vm_name: "secure_vm"
+  tasks:
+    - name: Encrypt VM Disks
+      community.vmware.vmware_vm_vmcrypt:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: no
+        vm_name: "{{ vm_name }}"
+        encryption: true
+      register: encryption_result
+
+    - name: Confirm Encryption
+      debug:
+        msg: "VM '{{ vm_name }}' encryption enabled successfully."
