@@ -1,0 +1,41 @@
+- name: Audit VMware ESXi STIG Compliance
+  hosts: localhost
+  gather_facts: no
+  vars:
+    vcenter_hostname: "vcenter.example.com"
+    vcenter_username: "admin@example.com"
+    vcenter_password: "password"
+    esxi_host: "esxi-01.example.com"
+  tasks:
+    - name: Check SSH status
+      community.vmware.vmware_host_service_info:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: no
+        esxi_hostname: "{{ esxi_host }}"
+      register: service_status
+
+    - name: Ensure SSH is disabled
+      debug:
+        msg: "STIG Check: SSH is DISABLED"
+      when: service_status.service_info["TSM-SSH"] == "stopped"
+
+    - name: Verify audit logging directory
+      community.vmware.vmware_host_config_info:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: no
+        esxi_hostname: "{{ esxi_host }}"
+      register: host_config
+
+    - name: Check audit log settings
+      debug:
+        msg: "STIG Check: Audit logs are properly configured"
+      when: host_config.config_info["Syslog.global.logDir"] == "[Datastore1] /vmware_logs/"
+
+    - name: Verify password policy settings
+      debug:
+        msg: "STIG Check: Strong password policy is enforced"
+      when: host_config.config_info["Security.PasswordQualityControl"] == "retry=3 min=disabled,disabled,disabled,7,7"
