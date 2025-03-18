@@ -1,0 +1,31 @@
+- name: Deploy Application in OpenShift
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Login to OpenShift
+      command: oc login --token={{ openshift_token }} --server={{ openshift_api }}
+      register: login_result
+      failed_when: "'Login successful' not in login_result.stdout"
+
+    - name: Create a new OpenShift project
+      command: oc new-project my-app
+      register: project_result
+      failed_when: "'created' not in project_result.stdout and 'already exists' not in project_result.stdout"
+      
+    - name: Deploy application from an image
+      command: oc new-app --name=myapp nginx
+      register: deploy_result
+      failed_when: "'successfully' not in deploy_result.stdout and 'created' not in deploy_result.stdout"
+
+    - name: Expose application service
+      command: oc expose svc myapp
+      register: expose_result
+      failed_when: "'route created' not in expose_result.stdout and 'already exists' not in expose_result.stdout"
+
+    - name: Get route URL
+      command: oc get route myapp -o jsonpath='{.spec.host}'
+      register: route_result
+
+    - name: Display Application URL
+      debug:
+        msg: "Application is available at http://{{ route_result.stdout }}"
