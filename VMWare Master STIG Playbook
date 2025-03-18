@@ -1,0 +1,80 @@
+---
+- name: Apply and Audit STIG Compliance for VMware
+  hosts: localhost
+  gather_facts: no
+  vars:
+    vcenter_hostname: "vcenter.example.com"
+    vcenter_username: "admin@example.com"
+    vcenter_password: "password"
+    esxi_host: "esxi-01.example.com"
+    vm_name: "secure_vm"
+  tasks:
+    
+    - name: Disable SSH on ESXi
+      community.vmware.vmware_host_service_manager:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: no
+        esxi_hostname: "{{ esxi_host }}"
+        service_name: "TSM-SSH"
+        state: "stopped"
+        restart_required: no
+
+    - name: Ensure audit logging is enabled
+      community.vmware.vmware_host_config_manager:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: no
+        esxi_hostname: "{{ esxi_host }}"
+        options:
+          "Syslog.global.logDir": "[Datastore1] /vmware_logs/"
+          "Syslog.global.logDirUnique": "true"
+
+    - name: Enforce strong password policies
+      community.vmware.vmware_host_config_manager:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: no
+        esxi_hostname: "{{ esxi_host }}"
+        options:
+          "Security.PasswordQualityControl": "retry=3 min=disabled,disabled,disabled,7,7"
+
+    - name: Harden vSwitch security settings
+      community.vmware.vmware_vswitch_security:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: no
+        esxi_hostname: "{{ esxi_host }}"
+        mac_changes: false
+        forged_transmits: false
+        promiscuous_mode: false
+
+    - name: Disable copy-paste & drag-and-drop on VM
+      community.vmware.vmware_vm_shell:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: no
+        vm_name: "{{ vm_name }}"
+        commands:
+          - "vmware-rpctool 'vmx.set_option isolation.tools.copy.disable true'"
+          - "vmware-rpctool 'vmx.set_option isolation.tools.paste.disable true'"
+          - "vmware-rpctool 'vmx.set_option isolation.tools.dnd.disable true'"
+
+    - name: Verify Lockdown Mode is Enabled
+      community.vmware.vmware_host_lockdown:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: no
+        esxi_hostname: "{{ esxi_host }}"
+      register: lockdown_status
+
+    - name: Confirm Lockdown Mode
+      debug:
+        msg: "STIG Check: Lockdown mode is ENABLED"
+      when: lockdown_status.lockdown_mode == "enabled"
