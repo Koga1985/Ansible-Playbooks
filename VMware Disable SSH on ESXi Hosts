@@ -1,0 +1,23 @@
+- name: Disable SSH on ESXi Hosts
+  hosts: localhost
+  gather_facts: no
+  vars:
+    vcenter_hostname: "vcenter.example.com"
+    vcenter_username: "admin@example.com"
+    vcenter_password: "password"
+  tasks:
+    - name: Disable SSH
+      community.vmware.vmware_host_service_manager:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: no
+        esxi_hostname: "esxi-01.example.com"
+        service_name: "TSM-SSH"
+        state: "stopped"
+        restart_required: no
+      register: ssh_disable
+
+    - name: Confirm SSH is disabled
+      debug:
+        msg: "SSH has been disabled on ESXi host."
