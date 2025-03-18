@@ -1,0 +1,5 @@
+- name: Lint Ansible Playbooks
+  hosts: localhost
+  tasks:
+    - name: Run ansible-lint
+      command: ansible-lint /path/to/playbook.yml
