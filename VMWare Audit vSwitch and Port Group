@@ -1,0 +1,20 @@
+- name: Audit vSwitch and Port Group Security
+  hosts: localhost
+  gather_facts: no
+  vars:
+    vcenter_hostname: "vcenter.example.com"
+    vcenter_username: "admin@example.com"
+    vcenter_password: "password"
+  tasks:
+    - name: Get vSwitch security settings
+      community.vmware.vmware_vswitch_info:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: no
+      register: vswitch_info
+
+    - name: Alert on insecure vSwitch settings
+      debug:
+        msg: "Warning! Insecure settings detected: {{ vswitch_info.results }}"
+      when: vswitch_info.results | json_query("[?security.macChanges || security.forgedTransmits || security.promiscuousMode]")
