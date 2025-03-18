@@ -1,0 +1,21 @@
+- name: Enable Secure Boot on ESXi
+  hosts: localhost
+  gather_facts: no
+  vars:
+    vcenter_hostname: "vcenter.example.com"
+    vcenter_username: "admin@example.com"
+    vcenter_password: "password"
+  tasks:
+    - name: Enable Secure Boot
+      community.vmware.vmware_host_secureboot:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: no
+        esxi_hostname: "esxi-01.example.com"
+        state: enabled
+      register: secure_boot_result
+
+    - name: Confirm Secure Boot status
+      debug:
+        msg: "Secure Boot has been enabled on ESXi host."
