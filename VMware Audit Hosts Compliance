@@ -1,0 +1,20 @@
+- name: Audit VMware Hosts for Security Compliance
+  hosts: localhost
+  gather_facts: no
+  vars:
+    vcenter_hostname: "vcenter.example.com"
+    vcenter_username: "admin@example.com"
+    vcenter_password: "password"
+  tasks:
+    - name: Retrieve ESXi host configurations
+      community.vmware.vmware_host_config_info:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: no
+      register: esxi_config
+
+    - name: Check for SSH access (should be disabled)
+      debug:
+        msg: "Warning! SSH is enabled on some hosts: {{ esxi_config | json_query('results[*].ssh') }}"
+      when: "'true' in esxi_config | json_query('results[*].ssh')"
