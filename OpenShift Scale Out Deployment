@@ -1,0 +1,20 @@
+- name: Scale OpenShift Deployment
+  hosts: localhost
+  gather_facts: no
+  vars:
+    app_name: myapp
+    replicas: 3
+  tasks:
+    - name: Scale deployment
+      command: oc scale deployment/{{ app_name }} --replicas={{ replicas }}
+      register: scale_result
+      failed_when: "'scaled' not in scale_result.stdout and 'already scaled' not in scale_result.stdout"
+
+    - name: Verify scaling
+      command: oc get deployment/{{ app_name }} -o jsonpath='{.status.replicas}'
+      register: check_replicas
+      failed_when: "check_replicas.stdout|int != replicas"
+
+    - name: Display scaling status
+      debug:
+        msg: "Deployment {{ app_name }} scaled to {{ replicas }} replicas."
