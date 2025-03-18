@@ -1,0 +1,36 @@
+- name: Run STIG Compliance Checks
+  hosts: localhost
+  gather_facts: no
+  vars:
+    vcenter_hostname: "vcenter.example.com"
+    vcenter_username: "admin@example.com"
+    vcenter_password: "password"
+    esxi_host: "esxi-01.example.com"
+  tasks:
+    - name: Get ESXi host firewall settings
+      community.vmware.vmware_host_firewall_info:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: no
+        esxi_hostname: "{{ esxi_host }}"
+      register: firewall_info
+
+    - name: Alert if unnecessary services are running
+      debug:
+        msg: "WARNING: Non-STIG compliant firewall rules detected!"
+      when: "'enabled' in firewall_info.firewall_rules"
+
+    - name: Check if lockdown mode is enabled
+      community.vmware.vmware_host_lockdown:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: no
+        esxi_hostname: "{{ esxi_host }}"
+      register: lockdown_status
+
+    - name: Confirm Lockdown Mode
+      debug:
+        msg: "STIG Check: Lockdown mode is ENABLED"
+      when: lockdown_status.lockdown_mode == "enabled"
