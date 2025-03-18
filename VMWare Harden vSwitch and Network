@@ -1,0 +1,24 @@
+- name: Apply STIG Network Security Hardening
+  hosts: localhost
+  gather_facts: no
+  vars:
+    vcenter_hostname: "vcenter.example.com"
+    vcenter_username: "admin@example.com"
+    vcenter_password: "password"
+    esxi_host: "esxi-01.example.com"
+  tasks:
+    - name: Disable MAC address changes
+      community.vmware.vmware_vswitch_security:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: no
+        esxi_hostname: "{{ esxi_host }}"
+        mac_changes: false
+        forged_transmits: false
+        promiscuous_mode: false
+      register: network_security
+
+    - name: Confirm network security settings
+      debug:
+        msg: "STIG Network Hardening applied: MAC address changes, forged transmits, and promiscuous mode disabled."
