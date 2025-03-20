@@ -1,7 +1,7 @@
+---
 # Built by: Smith, Dewain #TheBeardedEngineer
 # Playbook: Cisco Basic Configuration for IOS Devices
 
----
 - name: Configure Cisco IOS device
   hosts: cisco_routers
   gather_facts: no
@@ -10,12 +10,28 @@
     ansible_network_os: ios
     ansible_become: yes
     ansible_become_method: enable
+    # Using environment variables for sensitive info
+    ansible_user: "{{ lookup('ansible.builtin.env', 'CISCO_USERNAME') }}"
+    ansible_password: "{{ lookup('ansible.builtin.env', 'CISCO_PASSWORD') }}"
+    ansible_ssh_private_key_file: "{{ lookup('ansible.builtin.env', 'CISCO_SSH_PRIVATE_KEY') }}"
+
   tasks:
+
+    - name: Set device connection details
+      ansible.builtin.set_fact:
+        ios_auth:
+          user: "{{ ansible_user }}"
+          password: "{{ ansible_password }}"
+          ssh_key: "{{ ansible_ssh_private_key_file }}"
+      no_log: true  # Prevents credential exposure
 
     - name: Set hostname
       ios_config:
         lines:
           - hostname MyCiscoRouter
+        authorize: yes
+      when: ios_auth is defined
+      no_log: true
 
     - name: Configure interface GigabitEthernet0/1
       ios_config:
@@ -25,22 +41,33 @@
           - no shutdown
         parents:
           - interface GigabitEthernet0/1
+        authorize: yes
+      when: ios_auth is defined
+      no_log: true
 
     - name: Add static route
       ios_config:
         lines:
           - ip route 10.1.1.0 255.255.255.0 192.168.1.2
+        authorize: yes
+      when: ios_auth is defined
+      no_log: true
 
     - name: Save running configuration to startup configuration
       ios_config:
         save_when: always
+        authorize: yes
+      when: ios_auth is defined
+      no_log: true
 
     - name: Verify configuration (show running-config)
       ios_command:
         commands:
           - show running-config
       register: running_config_output
+      when: ios_auth is defined
 
     - name: Display running configuration
       debug:
         var: running_config_output.stdout_lines
+      when: running_config_output is defined
