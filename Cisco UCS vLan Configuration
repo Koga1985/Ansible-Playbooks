@@ -1,0 +1,17 @@
+---
+- name: Configure VLAN {{ vlan.id }}
+  cisco.ucs.ucs_vlan:
+    hostname: "{{ ucs_auth.hostname }}"
+    username: "{{ ucs_auth.username }}"
+    password: "{{ ucs_auth.password }}"
+    vlan_id: "{{ vlan.id }}"
+    vlan_name: "{{ vlan.name }}"
+    state: present
+  register: vlan_configuration
+  delegate_to: localhost
+  no_log: true
+
+- name: Show VLAN {{ vlan.id }} Configuration Status
+  ansible.builtin.debug:
+    msg: "VLAN {{ vlan.id }} Configuration Status: {{ vlan_configuration }}"
+  when: vlan_configuration is defined
