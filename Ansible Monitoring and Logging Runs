@@ -2,7 +2,7 @@
   hosts: localhost
   tasks:
     - name: Configure ansible.cfg logging
-      lineinfile:
+      ansible.builtin.lineinfile:
         path: "/etc/ansible/ansible.cfg"
         line: "log_path = /var/log/ansible.log"
         state: present

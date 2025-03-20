@@ -2,7 +2,7 @@
   hosts: localhost
   tasks:
     - name: Create inventory file
-      copy:
+      ansible.builtin.copy:
         dest: "/etc/ansible/hosts"
         content: |
           [web_servers]

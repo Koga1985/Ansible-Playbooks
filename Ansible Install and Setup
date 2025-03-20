@@ -1,15 +1,16 @@
-- name: Install Ansible on Target Machines
+- name: Install Ansible on Target Machines based on when conditionals
   hosts: target_servers
-  become: yes
+  become: true
   tasks:
-    - name: Install Ansible on Debian-based systems
-      apt:
+      #ansible.builtin.package can be used for distribution agnostic package installs
+    - name: Install Ansible on Debian-based systems 
+      ansible.builtin.apt:
         name: ansible
         state: present
       when: ansible_os_family == "Debian"
 
     - name: Install Ansible on RHEL-based systems
-      yum:
+      ansible.builtin.dnf:
         name: ansible
         state: present
       when: ansible_os_family == "RedHat"
