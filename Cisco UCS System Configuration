@@ -4,14 +4,25 @@
   vars:
     ucs_hostname: "ucs-manager.example.com"
     ucs_username: "admin"
-    ucs_password: "password"
+    ucs_password: "{{ lookup('ansible.builtin.env', 'UCS_PASSWORD') }}"  # Fetch from environment variable
+
   tasks:
+    - name: Set UCSM connection details
+      ansible.builtin.set_fact:
+        ucs_auth:
+          hostname: "{{ ucs_hostname }}"
+          username: "{{ ucs_username }}"
+          password: "{{ ucs_password }}"
+      no_log: true  # Hides sensitive information
+
     - name: Configure NTP Servers
       cisco.ucs.ucs_ntp:
-        hostname: "{{ ucs_hostname }}"
-        username: "{{ ucs_username }}"
-        password: "{{ ucs_password }}"
+        hostname: "{{ ucs_auth.hostname }}"
+        username: "{{ ucs_auth.username }}"
+        password: "{{ ucs_auth.password }}"
         ntp_servers:
           - "192.168.1.10"
           - "192.168.1.11"
         state: present
+      delegate_to: localhost
+      no_log: true  # Hide sensitive output
