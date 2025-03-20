@@ -4,14 +4,25 @@
   vars:
     ucs_hostname: "ucs-manager.example.com"
     ucs_username: "admin"
-    ucs_password: "password"
+    ucs_password: "{{ lookup('ansible.builtin.env', 'UCS_PASSWORD') }}"  # Fetch from environment variable
+
   tasks:
+    - name: Set UCSM connection details
+      ansible.builtin.set_fact:
+        ucs_auth:
+          hostname: "{{ ucs_hostname }}"
+          username: "{{ ucs_username }}"
+          password: "{{ ucs_password }}"
+      no_log: true  # Hides sensitive data
+
     - name: Update Infrastructure Firmware
       cisco.ucs.ucs_firmware_policy:
-        hostname: "{{ ucs_hostname }}"
-        username: "{{ ucs_username }}"
-        password: "{{ ucs_password }}"
+        hostname: "{{ ucs_auth.hostname }}"
+        username: "{{ ucs_auth.username }}"
+        password: "{{ ucs_auth.password }}"
         name: "Firmware-Policy"
         org_dn: "org-root"
         firmware_bundle: "ucs-fw-bundle-4.2.2a.bin"
         state: present
+      delegate_to: localhost
+      no_log: true  # Hides sensitive output
