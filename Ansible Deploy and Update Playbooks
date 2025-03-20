@@ -2,9 +2,9 @@
   hosts: localhost
   tasks:
     - name: Copy playbook to target
-      copy:
+      ansible.builtin.copy:
         src: "/local/path/to/playbook.yml"
         dest: "/remote/path/playbook.yml"
 
     - name: Run playbook on remote system
-      command: ansible-playbook /remote/path/playbook.yml
+      ansible.builtin.command: ansible-playbook /remote/path/playbook.yml

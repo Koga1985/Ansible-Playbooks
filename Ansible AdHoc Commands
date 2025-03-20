@@ -2,4 +2,4 @@
   hosts: localhost
   tasks:
     - name: Ping all hosts
-      command: ansible all -m ping
+      ansible.builin.command: ansible all -m ping
