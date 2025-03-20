@@ -4,13 +4,29 @@
   vars:
     ucs_hostname: "ucs-manager.example.com"
     ucs_username: "admin"
-    ucs_password: "password"
+    ucs_password: "{{ lookup('ansible.builtin.env', 'UCS_PASSWORD') }}"  # Fetch from environment variable
+
   tasks:
+    - name: Set UCSM connection details
+      ansible.builtin.set_fact:
+        ucs_auth:
+          hostname: "{{ ucs_hostname }}"
+          username: "{{ ucs_username }}"
+          password: "{{ ucs_password }}"
+      no_log: true  # Hides sensitive data
+
     - name: Create a new service profile
       cisco.ucs.ucs_service_profile:
-        hostname: "{{ ucs_hostname }}"
-        username: "{{ ucs_username }}"
-        password: "{{ ucs_password }}"
+        hostname: "{{ ucs_auth.hostname }}"
+        username: "{{ ucs_auth.username }}"
+        password: "{{ ucs_auth.password }}"
         name: "SP-01"
         org_dn: "org-root"
         state: present
+      delegate_to: localhost
+      no_log: true  # Hides sensitive output
+
+    - name: Show Service Profile Creation Status
+      ansible.builtin.debug:
+        msg: "Service Profile SP-01 created successfully."
+      when: ucs_auth is defined
